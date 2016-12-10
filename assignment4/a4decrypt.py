@@ -42,7 +42,6 @@ def inverse(e):
     y1 = 0
     x2 = 0
     y2 = 1
-    
     while(two !=1):
         tmp1 = x2
         tmp2 = y2
