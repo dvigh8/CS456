@@ -3,8 +3,6 @@ import math
 import os
 import random
 
-p_length = int(raw_input('prime bit length: '))
-
 def gen_num(length):
 	num = '1'
 	for i in range(2,length):
@@ -55,40 +53,95 @@ def plv(one, two):
 		one = two
 		two = rem
 		quo, rem = divmod(one,two) 
-	return long(y2 % p)
+	return long(y2 % n)
 
+def gcd(x, y):
+	while y != 0:
+		(x, y) = (y, x % y)
+	return x
+	
 def get_prime():
 	num = gen_num(p_length)
 	while mr(num) != True:
 		num = gen_num(p_length)
 	return num
-p = get_prime()
-q = get_prime()
-e = gen_num(p_length/2)
-while p == q:
-	q = get_prime()
-if p < q:
-	temp = p
-	p = q
-	q = temp
-while pow(p,1,e) == 1 or pow(q,1,e) == 1:
-	e = gen_num(p_length/2)
-n = p*q
-phi = (p-1)*(q-1)
-d = plv(phi,e);
 
-z = open('keys.txt', 'w')
-z.write(str(p) + '\n') 
-z.write(str(q) + '\n') 
-z.write(str(n) + '\n') 
-z.write(str(e) + '\n') 
-z.write(str(d) + '\n') 
-z.write(str(phi) + '\n') 
-z.close()
+ans = raw_input('encrypt(e) decrypt (d): ')
 
-message = raw_input('what is your message: ')
-m = open('message.txt','w')
-for i in range(len(message)):
-	print ord(message[i])
-#	m.write(pow(ord(i),e,n))
-print message[2]
+if ans == 'e':
+	ans = raw_input('use keys(k) gen keys(g) ')
+	if ans == 'g':
+		p_length = int(raw_input('prime bit length: '))
+
+		p = get_prime()
+		q = get_prime()
+		e = gen_num(p_length/2)
+		while p == q:
+			q = get_prime()
+		if p < q:
+			temp = p
+			p = q
+			q = temp
+		n = p*q
+		phi = (p-1)*(q-1)
+		while gcd(phi,e) != 1:
+			e = gen_num(p_length/2)
+		d = plv(phi,e);
+		while (d*e % phi) != 1:
+			e = gen_num(p_length/2)
+			while gcd(phi,e) != 1:
+				e = gen_num(p_length/2)
+			d = plv(phi,e);
+		
+		print ' d*e % phi  = ' + str(d*e % phi)
+
+		z = open('public.keys.txt', 'w')
+		z.write(str(n) + '\n') 
+		z.write(str(e) + '\n') 
+		z.close()
+		z = open('private.keys.txt', 'w')
+		z.write(str(p) + '\n') 
+		z.write(str(q) + '\n') 
+		z.write(str(phi) + '\n') 
+		z.write(str(d) + '\n') 
+		z.write(str(n) + '\n') 
+		z.close()
+	else:
+		f = open('public.keys.txt')
+		l = list(f)
+		n = int(l[0])
+		e = int(l[1])
+		f.close()
+	ans = raw_input('from file (f) enter message (e) ')
+	if ans == 'f': 
+		file_name = raw_input('input file name: ')
+		f = open(file_name)
+		l = list(f)
+		f.close()
+		message = ''
+		for i in range(len(l)):
+			message += l[i]
+	else:
+		message = raw_input('what is your message: ')
+	file_name = raw_input('output file name: ')
+	m = open(file_name,'w')
+	for i in range(len(message)):
+		m.write(str(pow(ord(message[i]),e,n)) + '\n')
+	m.close()
+elif ans == 'd':
+	f = open('private.keys.txt')
+	l = list(f)
+	p = int(l[0])
+	q = int(l[1])
+	phi = int(l[2])
+	d = int(l[3])
+	n = int(l[4])
+	f.close()
+	file_name = raw_input('input file name: ')
+	f = open(file_name)
+	l = list(f)
+	f.close()
+	text = ''
+	for i in range(len(l)):
+		text += chr(pow(int(l[i]),d,n))
+	print text
